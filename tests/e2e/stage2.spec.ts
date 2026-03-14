@@ -49,6 +49,23 @@ test("complete full setup and create two variants", async ({ page }) => {
   );
 });
 
+test("marketer prompt agent can refine visitor prompt draft", async ({ page }) => {
+  await signInAsMarketer(page);
+
+  await expect(page.getByTestId("marketer-prompt-agent")).toBeVisible();
+  await page
+    .getByPlaceholder("Tell the agent what the visitor chatbot should do next...")
+    .fill("Ask visitors about their goals before suggesting content.");
+  await page.getByRole("button", { name: "Send" }).click();
+
+  await expect(page.getByTestId("marketer-prompt-agent-messages")).toContainText(
+    "Ask visitors about their goals",
+  );
+  await expect(page.getByTestId("visitor-prompt-draft")).toContainText(
+    "visitor-facing wealth conversation assistant",
+  );
+});
+
 test("validation errors are readable in the marketer flow", async ({ page }) => {
   await signInAsMarketer(page);
 

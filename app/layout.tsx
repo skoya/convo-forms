@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const displayFont = Fraunces({
-  variable: "--font-display",
+const bodyFont = Geist({
+  variable: "--font-body",
   subsets: ["latin"],
 });
 
-const bodyFont = Manrope({
-  variable: "--font-body",
+const monoFont = Geist_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -25,9 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${displayFont.variable} ${bodyFont.variable} antialiased`}
-      >
+      <body className={`${bodyFont.variable} ${monoFont.variable} antialiased`}>
         {children}
       </body>
     </html>

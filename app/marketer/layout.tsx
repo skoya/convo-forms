@@ -35,12 +35,12 @@ export default async function MarketerLayout({
             set a demo cookie and enter the marketer workspace.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link
+            <a
               className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white"
               href="/api/auth/marketer?mode=login&redirect=/marketer"
             >
               Simulate marketer sign in
-            </Link>
+            </a>
             <Link
               className="rounded-full border border-[var(--border)] bg-white/70 px-5 py-3 text-sm font-semibold"
               href="/"
@@ -64,12 +64,12 @@ export default async function MarketerLayout({
             Campaign prototype control room
           </h1>
         </div>
-        <Link
+        <a
           className="rounded-full border border-[var(--border)] bg-white px-5 py-3 text-sm font-semibold"
           href="/api/auth/marketer?mode=logout&redirect=/"
         >
           Sign out
-        </Link>
+        </a>
       </header>
       {children}
     </div>
