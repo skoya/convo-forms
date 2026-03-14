@@ -39,8 +39,8 @@ describe("in-memory repositories", () => {
     });
 
     expect(experienceRepo.listByCampaignId(fixtures.campaign.id)).toHaveLength(2);
-    expect(leadRepo.list()).toHaveLength(0);
-    expect(analyticsRepo.list()).toHaveLength(1);
+    expect(leadRepo.list()).toHaveLength(1);
+    expect(analyticsRepo.list()).toHaveLength(3);
     expect(analyticsRepo.getById(fixtures.analyticsEvents[0].eventId)).toMatchObject({
       id: fixtures.analyticsEvents[0].eventId,
       eventType: "session_start",
@@ -56,8 +56,8 @@ describe("in-memory repositories", () => {
     expect(getRepositorySummary()).toEqual({
       campaigns: 1,
       experiences: 2,
-      leads: 0,
-      analyticsEvents: 1,
+      leads: 1,
+      analyticsEvents: 3,
     });
   });
 });

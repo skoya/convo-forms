@@ -1,4 +1,6 @@
+import { recordCrmPayload } from "@/lib/crm-sim/store";
 import { getDemoFixtures } from "@/lib/domain/fixtures";
+import { resetCrmPayloads } from "@/lib/crm-sim/store";
 import type {
   AnalyticsEvent,
   Campaign,
@@ -84,6 +86,7 @@ export function resetRepositories(): void {
   experienceRepo.clear();
   leadRepo.clear();
   analyticsRepo.clear();
+  resetCrmPayloads();
 }
 
 export function getRepositorySummary(): RepositorySummary {
@@ -108,6 +111,9 @@ export function seedDemoData(): SeedResult {
   });
   fixtures.analyticsEvents.forEach((event) => {
     analyticsRepo.upsert(event);
+  });
+  fixtures.crmPayloads.forEach((payload) => {
+    recordCrmPayload(payload);
   });
 
   return {

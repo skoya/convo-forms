@@ -1,3 +1,4 @@
+import type { CrmPayload } from "@/lib/crm-sim/store";
 import type {
   AnalyticsEvent,
   Campaign,
@@ -94,7 +95,28 @@ export const demoExperienceFixtures: ExperienceVariant[] = [
   },
 ];
 
-export const demoLeadFixtures: Lead[] = [];
+export const demoLeadFixtures: Lead[] = [
+  {
+    id: "lead-demo-001",
+    campaignId: demoCampaignFixture.id,
+    variantId: demoExperienceFixtures[0].id,
+    sessionId: "sess-demo-lead-001",
+    data: {
+      fullName: "Alex Morgan",
+      email: "alex@example.com",
+    },
+    consent: {
+      contactConsent: true,
+      privacyAccepted: true,
+      timestamp: FIXTURE_TIMESTAMP,
+    },
+    qualification: {
+      planningNeed: "Family governance",
+      timeline: "This quarter",
+    },
+    createdAt: FIXTURE_TIMESTAMP,
+  },
+];
 
 export const demoAnalyticsFixtures: AnalyticsEvent[] = [
   {
@@ -111,6 +133,57 @@ export const demoAnalyticsFixtures: AnalyticsEvent[] = [
       seeded: true,
     },
   },
+  {
+    eventId: "evt-seeded-message",
+    timestamp: FIXTURE_TIMESTAMP,
+    eventType: "message_sent",
+    campaignId: demoCampaignFixture.id,
+    variantId: demoExperienceFixtures[0].id,
+    sessionId: "sess-demo-001",
+    language: "en-US",
+    source: "visitor-chat",
+    adContext: demoExperienceFixtures[0].name,
+    metadata: {
+      seeded: true,
+    },
+  },
+  {
+    eventId: "evt-seeded-recommendation",
+    timestamp: FIXTURE_TIMESTAMP,
+    eventType: "recommendation_click",
+    campaignId: demoCampaignFixture.id,
+    variantId: demoExperienceFixtures[0].id,
+    sessionId: "sess-demo-001",
+    language: "en-US",
+    source: "recommendation-card",
+    adContext: demoExperienceFixtures[0].name,
+    metadata: {
+      seeded: true,
+    },
+  },
+];
+
+export const demoCrmPayloadFixtures: CrmPayload[] = [
+  {
+    deliveryId: "crm-demo-001",
+    campaignId: demoCampaignFixture.id,
+    variantId: demoExperienceFixtures[0].id,
+    sessionId: "sess-demo-lead-001",
+    data: {
+      fullName: "Alex Morgan",
+      email: "alex@example.com",
+    },
+    consent: {
+      contactConsent: true,
+      privacyAccepted: true,
+      timestamp: FIXTURE_TIMESTAMP,
+    },
+    qualification: {
+      planningNeed: "Family governance",
+      timeline: "This quarter",
+    },
+    createdAt: FIXTURE_TIMESTAMP,
+  },
 ];
 
 export function getDemoFixtures() {
@@ -119,5 +192,6 @@ export function getDemoFixtures() {
     experiences: demoExperienceFixtures,
     leads: demoLeadFixtures,
     analyticsEvents: demoAnalyticsFixtures,
+    crmPayloads: demoCrmPayloadFixtures,
   };
 }

@@ -7,7 +7,14 @@ export const dynamic = "force-dynamic";
 
 type TrackPayload = Pick<
   AnalyticsEvent,
-  "campaignId" | "variantId" | "sessionId" | "eventType" | "language" | "metadata"
+  | "campaignId"
+  | "variantId"
+  | "sessionId"
+  | "eventType"
+  | "language"
+  | "source"
+  | "adContext"
+  | "metadata"
 >;
 
 export async function POST(request: NextRequest) {
@@ -32,6 +39,8 @@ export async function POST(request: NextRequest) {
     variantId: payload.variantId,
     sessionId: payload.sessionId,
     language: payload.language,
+    source: payload.source,
+    adContext: payload.adContext,
     metadata: payload.metadata,
   };
 

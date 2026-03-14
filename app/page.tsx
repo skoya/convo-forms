@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GuidedTour } from "@/components/guided-tour";
 import { SeedDemoButton } from "@/components/seed-demo-button";
 import { getRepositorySummary } from "@/lib/repos";
 
@@ -44,7 +45,14 @@ export default function Home() {
                 >
                   Open seeded visitor route
                 </Link>
+                <Link
+                  className="rounded-full border border-[var(--border)] bg-white/70 px-5 py-3 text-sm font-semibold text-[var(--foreground)]"
+                  href="/playbook"
+                >
+                  Read playbook
+                </Link>
               </div>
+              <GuidedTour />
             </div>
             <div className="glass-panel rounded-[1.5rem] border-white/60 p-6">
               <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
@@ -84,9 +92,9 @@ export default function Home() {
             </div>
           </div>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted)]">
-            The Stage 1 seed initializes one campaign, two experience variants,
-            and a starter analytics event from fixed fixtures so tests stay
-            deterministic.
+            The demo seed initializes one campaign, two experience variants, a
+            sample lead handoff, and analytics fixtures from fixed data so tests
+            stay deterministic.
           </p>
           <SeedDemoButton initialSummary={summary} />
         </article>

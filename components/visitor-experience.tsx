@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ExperienceVariant } from "@/lib/domain/models";
+import { getQualificationFields } from "@/lib/leads/submission";
 import {
   getRecommendations,
   type Recommendation,
@@ -61,12 +62,33 @@ const starterPrompts = [
   "What educational UBS resources cover sustainable investing?",
 ];
 
+type LeadSubmitResponse = {
+  crmPayload: {
+    campaignId: string;
+    variantId: string;
+    sessionId: string;
+    consent: {
+      timestamp: string;
+    };
+  };
+};
+
+type LeadSubmitErrorResponse = {
+  errors?: {
+    leadFieldErrors: Record<string, string>;
+    qualificationErrors: Record<string, string>;
+    consentErrors: string[];
+  };
+};
+
 async function trackEvent(payload: {
   campaignId: string;
   variantId: string;
   sessionId: string;
-  eventType: "message_sent" | "recommendation_click";
+  eventType: "session_start" | "message_sent" | "recommendation_click";
   language: string;
+  source?: string;
+  adContext?: string;
   metadata?: Record<string, unknown>;
 }) {
   await fetch("/api/analytics/track", {
@@ -82,6 +104,16 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
   const [language, setLanguage] = useState(experience.languages[0] ?? "en-US");
   const [input, setInput] = useState("");
   const [lastEvent, setLastEvent] = useState("session_start");
+  const [leadData, setLeadData] = useState<Record<string, string>>({});
+  const [qualificationData, setQualificationData] = useState<Record<string, string>>(
+    {},
+  );
+  const [contactConsent, setContactConsent] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [submitErrors, setSubmitErrors] = useState<string[]>([]);
+  const [submitSuccess, setSubmitSuccess] = useState<LeadSubmitResponse | null>(
+    null,
+  );
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "assistant-intro",
@@ -99,6 +131,20 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
 
   const sessionId = `sess-${experience.id}-visitor`;
   const copy = copyByLanguage[language] ?? copyByLanguage["en-US"];
+  const qualificationFields = getQualificationFields();
+
+  useEffect(() => {
+    void trackEvent({
+      campaignId: experience.campaignId,
+      variantId: experience.id,
+      sessionId,
+      eventType: "session_start",
+      language,
+      metadata: {
+        seededVariant: experience.id,
+      },
+    });
+  }, [experience.campaignId, experience.id, language, sessionId]);
 
   async function updateRecommendations(query: string) {
     const nextRecommendations = getRecommendations({
@@ -124,6 +170,8 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
       sessionId,
       eventType: "message_sent",
       language,
+      source: "visitor-chat",
+      adContext: experience.name,
       metadata: {
         query,
       },
@@ -159,6 +207,8 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
       sessionId,
       eventType: "recommendation_click",
       language,
+      source: "recommendation-card",
+      adContext: experience.name,
       metadata: {
         recommendationId: recommendation.id,
         sourceUrl: recommendation.sourceUrl,
@@ -183,6 +233,45 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
       }),
     );
     setLastEvent("session_start");
+  }
+
+  async function handleLeadSubmit() {
+    const response = await fetch("/api/leads/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        variantId: experience.id,
+        sessionId,
+        data: leadData,
+        qualification: qualificationData,
+        consent: {
+          contactConsent,
+          privacyAccepted,
+        },
+      }),
+    });
+
+    const payload = (await response.json()) as
+      | LeadSubmitResponse
+      | LeadSubmitErrorResponse;
+
+    if (!response.ok) {
+      const errorPayload = payload as LeadSubmitErrorResponse;
+      const nextErrors = [
+        ...Object.values(errorPayload.errors?.leadFieldErrors ?? {}),
+        ...Object.values(errorPayload.errors?.qualificationErrors ?? {}),
+        ...(errorPayload.errors?.consentErrors ?? []),
+      ];
+      setSubmitErrors(nextErrors);
+      setSubmitSuccess(null);
+      return;
+    }
+
+    setSubmitErrors([]);
+    setSubmitSuccess(payload as LeadSubmitResponse);
+    setLastEvent("lead_submit");
   }
 
   return (
@@ -343,6 +432,111 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
           >
             {copy.analyticsLabel}: {lastEvent}
           </p>
+        </section>
+
+        <section className="glass-panel rounded-[1.75rem] p-6 md:p-8">
+          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
+            Lead capture
+          </p>
+          <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
+            This chatbot provides educational information only and not
+            personalized investment advice. For tailored recommendations, speak
+            with a licensed advisor.
+          </p>
+          {experience.qualificationEnabled ? (
+            <div className="mt-5 space-y-4" data-testid="qualification-section">
+              <p className="text-sm font-semibold">Qualification</p>
+              {qualificationFields.map((field) => (
+                <label className="block" key={field.key}>
+                  <span className="text-sm font-semibold">{field.label}</span>
+                  <input
+                    className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                    onChange={(event) => {
+                      setQualificationData((previous) => ({
+                        ...previous,
+                        [field.key]: event.target.value,
+                      }));
+                    }}
+                    value={qualificationData[field.key] ?? ""}
+                  />
+                </label>
+              ))}
+            </div>
+          ) : null}
+          <div className="mt-5 space-y-4">
+            {experience.leadFields.map((field) => (
+              <label className="block" key={field.key}>
+                <span className="text-sm font-semibold">{field.label}</span>
+                <input
+                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                  onChange={(event) => {
+                    setLeadData((previous) => ({
+                      ...previous,
+                      [field.key]: event.target.value,
+                    }));
+                  }}
+                  type={field.type}
+                  value={leadData[field.key] ?? ""}
+                />
+              </label>
+            ))}
+          </div>
+          <div className="mt-5 space-y-4 rounded-[1.25rem] border border-[var(--border)] bg-white/75 px-4 py-4">
+            <label className="flex items-start gap-3">
+              <input
+                checked={contactConsent}
+                onChange={(event) => {
+                  setContactConsent(event.target.checked);
+                }}
+                type="checkbox"
+              />
+              <span className="text-sm leading-6">
+                I consent to being contacted about this educational inquiry.
+              </span>
+            </label>
+            <label className="flex items-start gap-3">
+              <input
+                checked={privacyAccepted}
+                onChange={(event) => {
+                  setPrivacyAccepted(event.target.checked);
+                }}
+                type="checkbox"
+              />
+              <span className="text-sm leading-6">
+                I acknowledge the privacy notice and understand how my
+                information will be used.
+              </span>
+            </label>
+          </div>
+          {submitErrors.length > 0 ? (
+            <div
+              className="mt-5 rounded-[1.25rem] border border-red-300 bg-red-50 px-4 py-4 text-sm text-red-700"
+              data-testid="lead-errors"
+            >
+              {submitErrors.map((error) => (
+                <p key={error}>{error}</p>
+              ))}
+            </div>
+          ) : null}
+          {submitSuccess ? (
+            <div
+              className="mt-5 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-4 text-sm"
+              data-testid="lead-submit-success"
+            >
+              Lead submitted for variant {submitSuccess.crmPayload.variantId}.
+              Consent timestamp: {submitSuccess.crmPayload.consent.timestamp}
+            </div>
+          ) : null}
+          <button
+            className="mt-5 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white"
+            data-testid="lead-submit-button"
+            onClick={() => {
+              void handleLeadSubmit();
+            }}
+            type="button"
+          >
+            Submit lead
+          </button>
         </section>
       </aside>
     </div>
