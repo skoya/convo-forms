@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #fafafa;
   --surface: #ffffff;
   --surface-strong: #ffffff;
   --foreground: #111111;
-  --muted: #666666;
-  --border: #e5e5e5;
-  --accent: #111111;
-  --accent-strong: #000000;
+  --muted: #6b6b6b;
+  --border: #eaeaea;
+  --accent: #0070f3;
+  --accent-strong: #0059c9;
   --success: #0a7c58;
 }
 
@@ -24,10 +24,14 @@
 
 html,
 body {
-  background: var(--background);
+  background: radial-gradient(circle at top, #ffffff 0%, #fafafa 55%, #f6f6f6 100%);
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
   min-height: 100vh;
+}
+
+body {
+  line-height: 1.45;
 }
 
 button,
@@ -50,18 +54,32 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #111111;
+  outline: 2px solid color-mix(in srgb, var(--accent) 75%, #ffffff);
   outline-offset: 2px;
 }
 
+input,
+textarea,
+select {
+  border-color: var(--border);
+}
+
+::placeholder {
+  color: #9a9a9a;
+}
+
 .glass-panel {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, #ffffff);
   border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 28px rgba(0, 0, 0, 0.03);
+  border-radius: 18px;
   backdrop-filter: none;
 }
 
 .display-font {
   font-family: var(--font-body), sans-serif;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
 }
