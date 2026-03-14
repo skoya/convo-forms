@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VisitorExperience } from "@/components/visitor-experience";
 import { experienceRepo } from "@/lib/repos";
 
 export const dynamic = "force-dynamic";
@@ -47,9 +48,12 @@ export default async function ExperiencePage({
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-8">
       <section className="glass-panel rounded-[2rem] px-6 py-8 md:px-10 md:py-10">
         <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-          Visitor experience shell
+          Visitor experience
         </p>
-        <h1 className="display-font mt-3 text-4xl font-semibold">
+        <h1
+          className="display-font mt-3 text-4xl font-semibold"
+          data-testid="experience-title"
+        >
           {experience.name}
         </h1>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--muted)]">
@@ -59,45 +63,7 @@ export default async function ExperiencePage({
         </p>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
-        <article className="glass-panel rounded-[1.75rem] p-6 md:p-8">
-          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-            Variant configuration
-          </p>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            {[
-              ["Conversion goal", experience.conversionGoal],
-              ["Content mode", experience.contentMode],
-              ["Layout mode", experience.layoutMode],
-              ["Identification", experience.identificationMode],
-              ["Safety profile", experience.safetyProfile],
-              ["Share path", experience.sharePath],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                className="rounded-[1.25rem] border border-[var(--border)] bg-white/70 px-4 py-4"
-              >
-                <dt className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
-                  {label}
-                </dt>
-                <dd className="mt-2 text-base font-semibold">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </article>
-
-        <aside className="glass-panel rounded-[1.75rem] p-6 md:p-8">
-          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-            Stage 1 readiness
-          </p>
-          <ul className="mt-4 space-y-3 text-sm leading-7 text-[var(--muted)]">
-            <li>Languages: {experience.languages.join(", ")}</li>
-            <li>Qualification enabled: {String(experience.qualificationEnabled)}</li>
-            <li>Consent required: {String(experience.consentRequired)}</li>
-            <li>Lead fields: {experience.leadFields.map((field) => field.label).join(", ")}</li>
-          </ul>
-        </aside>
-      </section>
+      <VisitorExperience experience={experience} />
     </main>
   );
 }

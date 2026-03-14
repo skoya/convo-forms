@@ -32,7 +32,7 @@ test("demo seed creates the expected entities", async ({ page }) => {
   await expect(page.getByTestId("repo-summary")).toContainText("2");
   await page.getByRole("link", { name: "Open exp-ubs-wealth-curated" }).click();
   await expect(page).toHaveURL(/\/experience\/exp-ubs-wealth-curated$/);
-  await expect(
-    page.getByRole("heading", { name: "Curated guidance path" }),
-  ).toBeVisible();
+  await expect(page.getByTestId("experience-title")).toContainText(
+    "Curated guidance path",
+  );
 });

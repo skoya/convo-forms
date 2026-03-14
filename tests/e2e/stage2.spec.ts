@@ -76,7 +76,7 @@ test("created share links resolve to the visitor experience", async ({ page }) =
   await page.getByRole("link", { name: "Open Primary concierge path" }).click();
 
   await expect(page).toHaveURL(/\/experience\/exp-/);
-  await expect(
-    page.getByRole("heading", { name: "Primary concierge path" }),
-  ).toBeVisible();
+  await expect(page.getByTestId("experience-title")).toContainText(
+    "Primary concierge path",
+  );
 });
