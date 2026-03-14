@@ -63,6 +63,22 @@ export const experienceRepo = repoRegistry.experienceRepo;
 export const leadRepo = repoRegistry.leadRepo;
 export const analyticsRepo = repoRegistry.analyticsRepo;
 
+export function listCampaigns(): Campaign[] {
+  return campaignRepo.list();
+}
+
+export function listExperiences(): ExperienceVariant[] {
+  return experienceRepo.list();
+}
+
+export function listLeads(): Lead[] {
+  return leadRepo.list();
+}
+
+export function listAnalyticsEvents(): Array<AnalyticsEvent & { id: string }> {
+  return analyticsRepo.list();
+}
+
 export function resetRepositories(): void {
   campaignRepo.clear();
   experienceRepo.clear();
