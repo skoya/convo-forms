@@ -37,4 +37,8 @@ test("playbook sections exist and are readable", async ({ page }) => {
   await expect(page.getByText("2. Configure the marketer path")).toBeVisible();
   await expect(page.getByText("3. Run the visitor demo")).toBeVisible();
   await expect(page.getByText("4. Inspect CRM and analytics")).toBeVisible();
+  await expect(page.getByTestId("production-gap-register")).toContainText(
+    "Prototype-to-production gap register",
+  );
+  await expect(page.getByText("Authentication and authorization")).toBeVisible();
 });

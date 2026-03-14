@@ -19,6 +19,29 @@ const sections = [
   },
 ];
 
+const productionGaps = [
+  {
+    title: "Authentication and authorization",
+    body: "Replace the simulated marketer cookie with real SSO, scoped roles, and auditable access control for campaign configuration and lead data.",
+  },
+  {
+    title: "Persistence and auditability",
+    body: "Move campaigns, variants, analytics, leads, and configuration archives from in-memory storage into durable services with audit trails and recovery workflows.",
+  },
+  {
+    title: "Compliance and privacy controls",
+    body: "Formalize consent capture, retention, privacy notices, disclosure copy approval, and legal review for any PII or regulated wealth-management messaging.",
+  },
+  {
+    title: "Content and retrieval governance",
+    body: "Replace fixture-backed retrieval with approved ingestion, provenance tracking, content freshness controls, and policy-enforced ranking rules.",
+  },
+  {
+    title: "Operational readiness",
+    body: "Add observability, rate limits, error budgets, CI/CD promotion gates, and real integrations for CRM delivery, scheduling, and support escalation.",
+  },
+];
+
 export default function PlaybookPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-8">
@@ -46,6 +69,30 @@ export default function PlaybookPage() {
             </p>
           </article>
         ))}
+      </section>
+      <section
+        className="glass-panel rounded-[2rem] px-6 py-8 md:px-10 md:py-10"
+        data-testid="production-gap-register"
+      >
+        <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
+          Prototype-to-production gap register
+        </p>
+        <h2 className="mt-3 text-3xl font-semibold">
+          What still has to change before this can leave demo mode
+        </h2>
+        <div className="mt-6 space-y-4">
+          {productionGaps.map((gap) => (
+            <article
+              className="rounded-[1.5rem] border border-[var(--border)] bg-white/75 px-5 py-5"
+              key={gap.title}
+            >
+              <h3 className="text-lg font-semibold">{gap.title}</h3>
+              <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
+                {gap.body}
+              </p>
+            </article>
+          ))}
+        </div>
       </section>
     </main>
   );

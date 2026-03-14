@@ -22,10 +22,15 @@ test.beforeEach(async ({ request }) => {
 test("submit is blocked without required consent", async ({ page }) => {
   await page.goto("/experience/exp-ubs-wealth-curated");
 
-  await page.getByLabel("Full name").fill("Jordan Avery");
-  await page.getByLabel("Email address").fill("jordan@example.com");
+  await page.getByTestId("lead-capture-start").click();
   await page.getByLabel("Primary planning need").fill("Portfolio review");
+  await page.getByTestId("lead-capture-continue").click();
   await page.getByLabel("Decision timeline").fill("Next 90 days");
+  await page.getByTestId("lead-capture-continue").click();
+  await page.getByLabel("Full name").fill("Jordan Avery");
+  await page.getByTestId("lead-capture-continue").click();
+  await page.getByLabel("Email address").fill("jordan@example.com");
+  await page.getByTestId("lead-capture-continue").click();
   await page.getByTestId("lead-submit-button").click();
 
   await expect(page.getByTestId("lead-errors")).toContainText(
@@ -38,10 +43,13 @@ test("submit is blocked without required consent", async ({ page }) => {
 
 test("qualification is shown only when enabled", async ({ page }) => {
   await page.goto("/experience/exp-ubs-wealth-curated");
+  await page.getByTestId("lead-capture-start").click();
   await expect(page.getByTestId("qualification-section")).toBeVisible();
 
   await page.goto("/experience/exp-ubs-wealth-runtime");
+  await page.getByTestId("lead-capture-start").click();
   await expect(page.getByTestId("qualification-section")).toHaveCount(0);
+  await expect(page.getByLabel("Full name")).toBeVisible();
 });
 
 test("successful lead submission appears in the marketer CRM inspector", async ({
@@ -49,10 +57,15 @@ test("successful lead submission appears in the marketer CRM inspector", async (
 }) => {
   await page.goto("/experience/exp-ubs-wealth-curated");
 
+  await page.getByTestId("lead-capture-start").click();
   await page.getByLabel("Primary planning need").fill("Family planning");
+  await page.getByTestId("lead-capture-continue").click();
   await page.getByLabel("Decision timeline").fill("This quarter");
+  await page.getByTestId("lead-capture-continue").click();
   await page.getByLabel("Full name").fill("Jordan Avery");
+  await page.getByTestId("lead-capture-continue").click();
   await page.getByLabel("Email address").fill("jordan@example.com");
+  await page.getByTestId("lead-capture-continue").click();
   await page
     .getByText("I consent to being contacted about this educational inquiry.")
     .click();

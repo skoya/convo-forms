@@ -12,7 +12,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: `npm run dev -- --port ${port}`,
+    command: `NEXT_DIST_DIR=.next-playwright npm run dev -- --port ${port}`,
     port,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

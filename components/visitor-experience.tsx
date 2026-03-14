@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ExperienceVariant } from "@/lib/domain/models";
 import { getQualificationFields } from "@/lib/leads/submission";
 import {
@@ -17,50 +17,6 @@ type ChatMessage = {
   role: "assistant" | "user";
   body: string;
 };
-
-type CopySet = {
-  intro: string;
-  promptLabel: string;
-  promptPlaceholder: string;
-  sendLabel: string;
-  suggestionTitle: string;
-  activeLanguageLabel: string;
-  analyticsLabel: string;
-  assistantFollowUp: string;
-};
-
-const copyByLanguage: Record<string, CopySet> = {
-  "de-CH": {
-    intro:
-      "Willkommen. Ich kann Ihnen bildungsorientierte Inhalte zu Vermoegensplanung und UBS Themen zeigen.",
-    promptLabel: "Ihre Frage",
-    promptPlaceholder: "Beschreiben Sie, was Sie heute erkunden moechten",
-    sendLabel: "Senden",
-    suggestionTitle: "Empfohlene Inhalte",
-    activeLanguageLabel: "Aktive Sprache",
-    analyticsLabel: "Letztes Ereignis",
-    assistantFollowUp:
-      "Ich habe die Inhalte nach Ihren Prioritaeten und der aktiven Variante sortiert.",
-  },
-  "en-US": {
-    intro:
-      "Welcome. I can surface educational UBS content tied to your planning priorities and this campaign variant.",
-    promptLabel: "Your question",
-    promptPlaceholder: "Describe what you want to explore today",
-    sendLabel: "Send",
-    suggestionTitle: "Recommended content",
-    activeLanguageLabel: "Active language",
-    analyticsLabel: "Last event",
-    assistantFollowUp:
-      "I ranked these items against your prompt and the active campaign configuration.",
-  },
-};
-
-const starterPrompts = [
-  "How can I prepare for a portfolio review?",
-  "Show me content for family succession planning.",
-  "What educational UBS resources cover sustainable investing?",
-];
 
 type LeadSubmitResponse = {
   crmPayload: {
@@ -81,6 +37,79 @@ type LeadSubmitErrorResponse = {
   };
 };
 
+type CopySet = {
+  intro: string;
+  promptLabel: string;
+  promptPlaceholder: string;
+  sendLabel: string;
+  suggestionTitle: string;
+  activeLanguageLabel: string;
+  analyticsLabel: string;
+  assistantFollowUp: string;
+  leadInvite: string;
+  leadConsentPrompt: string;
+  leadComplete: string;
+  leadStartLabel: string;
+  leadContinueLabel: string;
+};
+
+type LeadCaptureField = {
+  key: string;
+  label: string;
+  type: string;
+  required: boolean;
+  section: "qualification" | "lead";
+};
+
+const copyByLanguage: Record<string, CopySet> = {
+  "de-CH": {
+    intro:
+      "Willkommen. Ich kann Ihnen bildungsorientierte Inhalte zu Vermoegensplanung und UBS Themen zeigen.",
+    promptLabel: "Ihre Frage",
+    promptPlaceholder: "Beschreiben Sie, was Sie heute erkunden moechten",
+    sendLabel: "Senden",
+    suggestionTitle: "Empfohlene Inhalte",
+    activeLanguageLabel: "Aktive Sprache",
+    analyticsLabel: "Letztes Ereignis",
+    assistantFollowUp:
+      "Ich habe die Inhalte nach Ihren Prioritaeten und der aktiven Variante sortiert.",
+    leadInvite:
+      "Wenn Sie einen Rueckruf wuenschen, kann ich Ihre Angaben direkt hier im Chat aufnehmen.",
+    leadConsentPrompt:
+      "Bevor ich das an einen Advisor weitergebe, bestaetigen Sie bitte Kontakt- und Datenschutzeinwilligung.",
+    leadComplete:
+      "Danke. Ihre Anfrage wurde fuer eine Advisor-Nachverfolgung vorgemerkt.",
+    leadStartLabel: "Rueckruf im Chat starten",
+    leadContinueLabel: "Weiter",
+  },
+  "en-US": {
+    intro:
+      "Welcome. I can surface educational UBS content tied to your planning priorities and this campaign variant.",
+    promptLabel: "Your question",
+    promptPlaceholder: "Describe what you want to explore today",
+    sendLabel: "Send",
+    suggestionTitle: "Recommended content",
+    activeLanguageLabel: "Active language",
+    analyticsLabel: "Last event",
+    assistantFollowUp:
+      "I ranked these items against your prompt and the active campaign configuration.",
+    leadInvite:
+      "If you would like advisor follow-up, I can collect the details here in the chat.",
+    leadConsentPrompt:
+      "Before I hand this off, please confirm contact consent and privacy notice acknowledgment.",
+    leadComplete:
+      "Thank you. Your request has been logged for advisor follow-up.",
+    leadStartLabel: "Start follow-up in chat",
+    leadContinueLabel: "Continue",
+  },
+};
+
+const starterPrompts = [
+  "How can I prepare for a portfolio review?",
+  "Show me content for family succession planning.",
+  "What educational UBS resources cover sustainable investing?",
+];
+
 async function trackEvent(payload: {
   campaignId: string;
   variantId: string;
@@ -100,9 +129,33 @@ async function trackEvent(payload: {
   });
 }
 
+function buildLeadCaptureFields(experience: ExperienceVariant): LeadCaptureField[] {
+  const qualificationFields = experience.qualificationEnabled
+    ? getQualificationFields().map((field) => {
+        return {
+          ...field,
+          type: "text",
+          required: true,
+          section: "qualification" as const,
+        };
+      })
+    : [];
+
+  return [
+    ...qualificationFields,
+    ...experience.leadFields.map((field) => {
+      return {
+        ...field,
+        section: "lead" as const,
+      };
+    }),
+  ];
+}
+
 export function VisitorExperience({ experience }: VisitorExperienceProps) {
   const [language, setLanguage] = useState(experience.languages[0] ?? "en-US");
   const [input, setInput] = useState("");
+  const [leadInput, setLeadInput] = useState("");
   const [lastEvent, setLastEvent] = useState("session_start");
   const [leadData, setLeadData] = useState<Record<string, string>>({});
   const [qualificationData, setQualificationData] = useState<Record<string, string>>(
@@ -114,6 +167,8 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
   const [submitSuccess, setSubmitSuccess] = useState<LeadSubmitResponse | null>(
     null,
   );
+  const [leadCaptureStarted, setLeadCaptureStarted] = useState(false);
+  const [leadCaptureIndex, setLeadCaptureIndex] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "assistant-intro",
@@ -128,10 +183,46 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
       query: experience.conversionGoal,
     });
   });
+  const messageCountRef = useRef(1);
 
   const sessionId = `sess-${experience.id}-visitor`;
   const copy = copyByLanguage[language] ?? copyByLanguage["en-US"];
-  const qualificationFields = getQualificationFields();
+  const leadCaptureFields = buildLeadCaptureFields(experience);
+  const currentLeadField = leadCaptureFields[leadCaptureIndex];
+  const leadCaptureComplete = leadCaptureStarted && leadCaptureIndex >= leadCaptureFields.length;
+  function appendMessage(role: ChatMessage["role"], body: string) {
+    messageCountRef.current += 1;
+    setMessages((previous) => {
+      return [
+        ...previous,
+        {
+          id: `${role}-${messageCountRef.current}`,
+          role,
+          body,
+        },
+      ];
+    });
+  }
+
+  function resetLeadCaptureForLanguage(nextLanguage: string) {
+    setLeadData({});
+    setQualificationData({});
+    setLeadInput("");
+    setContactConsent(false);
+    setPrivacyAccepted(false);
+    setSubmitErrors([]);
+    setSubmitSuccess(null);
+    setLeadCaptureStarted(false);
+    setLeadCaptureIndex(0);
+    messageCountRef.current = 1;
+    setMessages([
+      {
+        id: `assistant-language-${nextLanguage}`,
+        role: "assistant",
+        body: copyByLanguage[nextLanguage]?.intro ?? copyByLanguage["en-US"].intro,
+      },
+    ]);
+  }
 
   useEffect(() => {
     void trackEvent({
@@ -153,14 +244,7 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
       query,
     });
 
-    setMessages((previous) => [
-      ...previous,
-      {
-        id: `assistant-${previous.length + 1}`,
-        role: "assistant",
-        body: copy.assistantFollowUp,
-      },
-    ]);
+    appendMessage("assistant", copy.assistantFollowUp);
     setRecommendations(nextRecommendations);
     setLastEvent("message_sent");
 
@@ -185,14 +269,7 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
       return;
     }
 
-    setMessages((previous) => [
-      ...previous,
-      {
-        id: `user-${previous.length + 1}`,
-        role: "user",
-        body: trimmed,
-      },
-    ]);
+    appendMessage("user", trimmed);
     setInput("");
 
     await updateRecommendations(trimmed);
@@ -218,13 +295,7 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
 
   function handleLanguageChange(nextLanguage: string) {
     setLanguage(nextLanguage);
-    setMessages([
-      {
-        id: `assistant-language-${nextLanguage}`,
-        role: "assistant",
-        body: copyByLanguage[nextLanguage]?.intro ?? copyByLanguage["en-US"].intro,
-      },
-    ]);
+    resetLeadCaptureForLanguage(nextLanguage);
     setRecommendations(
       getRecommendations({
         experience,
@@ -233,6 +304,64 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
       }),
     );
     setLastEvent("session_start");
+  }
+
+  function startLeadCapture() {
+    setLeadCaptureStarted(true);
+    setLeadCaptureIndex(0);
+    setLeadInput("");
+    setSubmitErrors([]);
+    setSubmitSuccess(null);
+    appendMessage("assistant", copy.leadInvite);
+
+    if (leadCaptureFields[0]) {
+      appendMessage("assistant", `Let's start with ${leadCaptureFields[0].label}.`);
+    } else {
+      appendMessage("assistant", copy.leadConsentPrompt);
+    }
+  }
+
+  function storeLeadFieldValue(field: LeadCaptureField, value: string) {
+    if (field.section === "qualification") {
+      setQualificationData((previous) => ({
+        ...previous,
+        [field.key]: value,
+      }));
+      return;
+    }
+
+    setLeadData((previous) => ({
+      ...previous,
+      [field.key]: value,
+    }));
+  }
+
+  function handleLeadFieldContinue() {
+    if (!currentLeadField) {
+      return;
+    }
+
+    const trimmed = leadInput.trim();
+
+    if (currentLeadField.required && !trimmed) {
+      setSubmitErrors([`${currentLeadField.label} is required.`]);
+      return;
+    }
+
+    setSubmitErrors([]);
+    storeLeadFieldValue(currentLeadField, trimmed);
+    appendMessage("user", trimmed || "Skipped");
+
+    const nextIndex = leadCaptureIndex + 1;
+    setLeadCaptureIndex(nextIndex);
+    setLeadInput("");
+
+    if (leadCaptureFields[nextIndex]) {
+      appendMessage("assistant", `Next, ${leadCaptureFields[nextIndex].label}.`);
+      return;
+    }
+
+    appendMessage("assistant", copy.leadConsentPrompt);
   }
 
   async function handleLeadSubmit() {
@@ -272,6 +401,7 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
     setSubmitErrors([]);
     setSubmitSuccess(payload as LeadSubmitResponse);
     setLastEvent("lead_submit");
+    appendMessage("assistant", copy.leadComplete);
   }
 
   return (
@@ -330,6 +460,159 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
               <p className="mt-2 text-sm leading-7">{message.body}</p>
             </div>
           ))}
+
+          <div
+            className="max-w-3xl rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-strong)] px-5 py-5"
+            data-testid="lead-capture-chat"
+          >
+            <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
+              Advisor follow-up in chat
+            </p>
+            <p className="mt-3 text-sm leading-7 text-[var(--foreground)]">
+              This chatbot provides educational information only and not
+              personalized investment advice. For tailored recommendations,
+              speak with a licensed advisor.
+            </p>
+
+            {!leadCaptureStarted ? (
+              <div className="mt-5">
+                <button
+                  className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white"
+                  data-testid="lead-capture-start"
+                  onClick={startLeadCapture}
+                  type="button"
+                >
+                  {copy.leadStartLabel}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-5 space-y-5">
+                {experience.qualificationEnabled ? (
+                  <div
+                    className="rounded-[1.25rem] border border-[var(--border)] bg-white/80 px-4 py-4"
+                    data-testid="qualification-section"
+                  >
+                    <p className="text-sm font-semibold">Qualification</p>
+                    <div className="mt-3 space-y-2 text-sm text-[var(--muted)]">
+                      {getQualificationFields().map((field) => (
+                        <p key={field.key}>
+                          {field.label}: {qualificationData[field.key] || "Pending"}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="rounded-[1.25rem] border border-[var(--border)] bg-white/80 px-4 py-4">
+                  <p className="text-sm font-semibold">Lead details</p>
+                  <div className="mt-3 space-y-2 text-sm text-[var(--muted)]">
+                    {experience.leadFields.map((field) => (
+                      <p key={field.key}>
+                        {field.label}: {leadData[field.key] || "Pending"}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                {currentLeadField ? (
+                  <div className="rounded-[1.25rem] border border-[var(--border)] bg-white/85 px-4 py-4">
+                    <label className="block">
+                      <span className="text-sm font-semibold">
+                        {currentLeadField.label}
+                      </span>
+                      <input
+                        className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                        data-testid="lead-capture-input"
+                        onChange={(event) => {
+                          setLeadInput(event.target.value);
+                        }}
+                        type={currentLeadField.type}
+                        value={leadInput}
+                      />
+                    </label>
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white"
+                        data-testid="lead-capture-continue"
+                        onClick={handleLeadFieldContinue}
+                        type="button"
+                      >
+                        {copy.leadContinueLabel}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {leadCaptureComplete ? (
+                  <div className="space-y-4 rounded-[1.25rem] border border-[var(--border)] bg-white/85 px-4 py-4">
+                    <p className="text-sm leading-7 text-[var(--foreground)]">
+                      {copy.leadConsentPrompt}
+                    </p>
+                    <div className="space-y-4 rounded-[1rem] border border-[var(--border)] bg-white px-4 py-4">
+                      <label className="flex items-start gap-3">
+                        <input
+                          checked={contactConsent}
+                          onChange={(event) => {
+                            setContactConsent(event.target.checked);
+                          }}
+                          type="checkbox"
+                        />
+                        <span className="text-sm leading-6">
+                          I consent to being contacted about this educational inquiry.
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-3">
+                        <input
+                          checked={privacyAccepted}
+                          onChange={(event) => {
+                            setPrivacyAccepted(event.target.checked);
+                          }}
+                          type="checkbox"
+                        />
+                        <span className="text-sm leading-6">
+                          I acknowledge the privacy notice and understand how my
+                          information will be used.
+                        </span>
+                      </label>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white"
+                        data-testid="lead-submit-button"
+                        onClick={() => {
+                          void handleLeadSubmit();
+                        }}
+                        type="button"
+                      >
+                        Submit lead
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {submitErrors.length > 0 ? (
+                  <div
+                    className="rounded-[1.25rem] border border-red-300 bg-red-50 px-4 py-4 text-sm text-red-700"
+                    data-testid="lead-errors"
+                  >
+                    {submitErrors.map((error) => (
+                      <p key={error}>{error}</p>
+                    ))}
+                  </div>
+                ) : null}
+
+                {submitSuccess ? (
+                  <div
+                    className="rounded-[1.25rem] border border-[var(--border)] bg-white/85 px-4 py-4 text-sm"
+                    data-testid="lead-submit-success"
+                  >
+                    Lead submitted for variant {submitSuccess.crmPayload.variantId}.
+                    Consent timestamp: {submitSuccess.crmPayload.consent.timestamp}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -424,7 +707,9 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
             <li>Content mode: {experience.contentMode}</li>
             <li>Qualification enabled: {String(experience.qualificationEnabled)}</li>
             <li>Consent required: {String(experience.consentRequired)}</li>
-            <li>Lead fields: {experience.leadFields.map((field) => field.label).join(", ")}</li>
+            <li>
+              Lead fields: {experience.leadFields.map((field) => field.label).join(", ")}
+            </li>
           </ul>
           <p
             className="mt-6 rounded-[1.25rem] border border-[var(--border)] bg-white/75 px-4 py-4 text-sm font-semibold"
@@ -432,111 +717,34 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
           >
             {copy.analyticsLabel}: {lastEvent}
           </p>
-        </section>
-
-        <section className="glass-panel rounded-[1.75rem] p-6 md:p-8">
-          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-            Lead capture
-          </p>
-          <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-            This chatbot provides educational information only and not
-            personalized investment advice. For tailored recommendations, speak
-            with a licensed advisor.
-          </p>
-          {experience.qualificationEnabled ? (
-            <div className="mt-5 space-y-4" data-testid="qualification-section">
-              <p className="text-sm font-semibold">Qualification</p>
-              {qualificationFields.map((field) => (
-                <label className="block" key={field.key}>
-                  <span className="text-sm font-semibold">{field.label}</span>
-                  <input
-                    className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
-                    onChange={(event) => {
-                      setQualificationData((previous) => ({
-                        ...previous,
-                        [field.key]: event.target.value,
-                      }));
-                    }}
-                    value={qualificationData[field.key] ?? ""}
-                  />
-                </label>
-              ))}
+          {leadCaptureStarted ? (
+            <div className="mt-6 rounded-[1.25rem] border border-[var(--border)] bg-white/75 px-4 py-4 text-sm text-[var(--muted)]">
+              <p className="font-semibold text-[var(--foreground)]">
+                Follow-up progress
+              </p>
+              <p className="mt-2">
+                {leadCaptureComplete
+                  ? "Awaiting consent and submission."
+                  : `Current prompt: ${currentLeadField?.label ?? "Completed"}`}
+              </p>
+              <p className="mt-2">
+                Captured lead fields:{" "}
+                {experience.leadFields.filter((field) => leadData[field.key]).length}/
+                {experience.leadFields.length}
+              </p>
+              {experience.qualificationEnabled ? (
+                <p className="mt-2">
+                  Qualification answers:{" "}
+                  {
+                    getQualificationFields().filter((field) => {
+                      return qualificationData[field.key];
+                    }).length
+                  }
+                  /{getQualificationFields().length}
+                </p>
+              ) : null}
             </div>
           ) : null}
-          <div className="mt-5 space-y-4">
-            {experience.leadFields.map((field) => (
-              <label className="block" key={field.key}>
-                <span className="text-sm font-semibold">{field.label}</span>
-                <input
-                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
-                  onChange={(event) => {
-                    setLeadData((previous) => ({
-                      ...previous,
-                      [field.key]: event.target.value,
-                    }));
-                  }}
-                  type={field.type}
-                  value={leadData[field.key] ?? ""}
-                />
-              </label>
-            ))}
-          </div>
-          <div className="mt-5 space-y-4 rounded-[1.25rem] border border-[var(--border)] bg-white/75 px-4 py-4">
-            <label className="flex items-start gap-3">
-              <input
-                checked={contactConsent}
-                onChange={(event) => {
-                  setContactConsent(event.target.checked);
-                }}
-                type="checkbox"
-              />
-              <span className="text-sm leading-6">
-                I consent to being contacted about this educational inquiry.
-              </span>
-            </label>
-            <label className="flex items-start gap-3">
-              <input
-                checked={privacyAccepted}
-                onChange={(event) => {
-                  setPrivacyAccepted(event.target.checked);
-                }}
-                type="checkbox"
-              />
-              <span className="text-sm leading-6">
-                I acknowledge the privacy notice and understand how my
-                information will be used.
-              </span>
-            </label>
-          </div>
-          {submitErrors.length > 0 ? (
-            <div
-              className="mt-5 rounded-[1.25rem] border border-red-300 bg-red-50 px-4 py-4 text-sm text-red-700"
-              data-testid="lead-errors"
-            >
-              {submitErrors.map((error) => (
-                <p key={error}>{error}</p>
-              ))}
-            </div>
-          ) : null}
-          {submitSuccess ? (
-            <div
-              className="mt-5 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-4 text-sm"
-              data-testid="lead-submit-success"
-            >
-              Lead submitted for variant {submitSuccess.crmPayload.variantId}.
-              Consent timestamp: {submitSuccess.crmPayload.consent.timestamp}
-            </div>
-          ) : null}
-          <button
-            className="mt-5 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white"
-            data-testid="lead-submit-button"
-            onClick={() => {
-              void handleLeadSubmit();
-            }}
-            type="button"
-          >
-            Submit lead
-          </button>
         </section>
       </aside>
     </div>

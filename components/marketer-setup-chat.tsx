@@ -1,14 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ExperienceVariant } from "@/lib/domain/models";
 import {
+  getDefaultVariantCloneValues,
+  deriveSetupValuesFromArchiveEntry,
   getDefaultSetupValues,
+  parseMarketerConfigArchive,
+  validateVariantCloneValues,
   validateSetupValues,
+  type MarketerConfigArchive,
+  type MarketerConfigImportResult,
   type MarketerSetupErrors,
   type MarketerSetupResult,
   type MarketerSetupValues,
+  type VariantCloneErrors,
+  type VariantCloneResult,
+  type VariantCloneValues,
 } from "@/lib/marketer/setup";
 import type { RepositorySummary } from "@/lib/repos/types";
 
@@ -18,6 +27,13 @@ type MarketerSetupChatProps = {
   submitSetup?: (
     values: MarketerSetupValues,
   ) => Promise<MarketerSetupResult>;
+  exportConfig?: () => Promise<MarketerConfigArchive>;
+  importConfig?: (
+    archive: MarketerConfigArchive,
+  ) => Promise<MarketerConfigImportResult>;
+  cloneVariant?: (
+    values: VariantCloneValues,
+  ) => Promise<VariantCloneResult>;
 };
 
 type StepDefinition = {
@@ -97,6 +113,68 @@ async function defaultSubmitSetup(
   return payload as MarketerSetupResult;
 }
 
+async function defaultExportConfig(): Promise<MarketerConfigArchive> {
+  const response = await fetch("/api/marketer/config");
+
+  if (!response.ok) {
+    throw new Error("Configuration export failed.");
+  }
+
+  return (await response.json()) as MarketerConfigArchive;
+}
+
+async function defaultImportConfig(
+  archive: MarketerConfigArchive,
+): Promise<MarketerConfigImportResult> {
+  const response = await fetch("/api/marketer/config", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(archive),
+  });
+
+  const payload = (await response.json()) as
+    | MarketerConfigImportResult
+    | { message?: string };
+
+  if (!response.ok) {
+    const message =
+      payload && "message" in payload && payload.message
+        ? payload.message
+        : "Configuration import failed.";
+    throw new Error(message);
+  }
+
+  return payload as MarketerConfigImportResult;
+}
+
+async function defaultCloneVariant(
+  values: VariantCloneValues,
+): Promise<VariantCloneResult> {
+  const response = await fetch("/api/marketer/variant-clone", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(values),
+  });
+
+  const payload = (await response.json()) as
+    | VariantCloneResult
+    | { message?: string };
+
+  if (!response.ok) {
+    const message =
+      payload && "message" in payload && payload.message
+        ? payload.message
+        : "Variant cloning failed.";
+    throw new Error(message);
+  }
+
+  return payload as VariantCloneResult;
+}
+
 function renderError(error?: string) {
   if (!error) {
     return null;
@@ -109,6 +187,9 @@ export function MarketerSetupChat({
   initialExperiences,
   initialSummary,
   submitSetup = defaultSubmitSetup,
+  exportConfig = defaultExportConfig,
+  importConfig = defaultImportConfig,
+  cloneVariant = defaultCloneVariant,
 }: MarketerSetupChatProps) {
   const [values, setValues] = useState<MarketerSetupValues>(() => {
     return getDefaultSetupValues();
@@ -120,6 +201,27 @@ export function MarketerSetupChat({
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<MarketerSetupResult | null>(null);
+  const [configJson, setConfigJson] = useState("");
+  const [configStatus, setConfigStatus] = useState("");
+  const [configError, setConfigError] = useState("");
+  const [isExportingConfig, setIsExportingConfig] = useState(false);
+  const [isImportingConfig, setIsImportingConfig] = useState(false);
+  const [cloneValues, setCloneValues] = useState<VariantCloneValues>(() => {
+    return getDefaultVariantCloneValues(initialExperiences[0]);
+  });
+  const [cloneErrors, setCloneErrors] = useState<VariantCloneErrors>({});
+  const [cloneStatus, setCloneStatus] = useState("");
+  const [cloneError, setCloneError] = useState("");
+  const [isCloningVariant, setIsCloningVariant] = useState(false);
+
+  useEffect(() => {
+    if (
+      experiences.length > 0 &&
+      !experiences.some((variant) => variant.id === cloneValues.sourceVariantId)
+    ) {
+      setCloneValues(getDefaultVariantCloneValues(experiences[0]));
+    }
+  }, [cloneValues.sourceVariantId, experiences]);
 
   function updateValue<TKey extends keyof MarketerSetupValues>(
     key: TKey,
@@ -130,6 +232,20 @@ export function MarketerSetupChat({
       [key]: nextValue,
     }));
     setErrors((previous) => ({
+      ...previous,
+      [key]: undefined,
+    }));
+  }
+
+  function updateCloneValue<TKey extends keyof VariantCloneValues>(
+    key: TKey,
+    nextValue: VariantCloneValues[TKey],
+  ) {
+    setCloneValues((previous) => ({
+      ...previous,
+      [key]: nextValue,
+    }));
+    setCloneErrors((previous) => ({
       ...previous,
       [key]: undefined,
     }));
@@ -189,6 +305,95 @@ export function MarketerSetupChat({
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleExportConfig() {
+    setConfigError("");
+    setConfigStatus("");
+    setIsExportingConfig(true);
+
+    try {
+      const archive = await exportConfig();
+      setConfigJson(JSON.stringify(archive, null, 2));
+      setConfigStatus(
+        `Exported ${archive.campaigns.length} campaign configuration bundle${archive.campaigns.length === 1 ? "" : "s"}.`,
+      );
+    } catch (error) {
+      setConfigError(
+        error instanceof Error ? error.message : "Configuration export failed.",
+      );
+    } finally {
+      setIsExportingConfig(false);
+    }
+  }
+
+  async function handleImportConfig() {
+    setConfigError("");
+    setConfigStatus("");
+    setIsImportingConfig(true);
+
+    try {
+      const archive = parseMarketerConfigArchive(configJson);
+      const importResult = await importConfig(archive);
+
+      setSummary(importResult.summary);
+      setExperiences(importResult.experiences);
+      setResult(null);
+      setErrors({});
+      setSubmitError("");
+
+      if (importResult.archive.campaigns[0]) {
+        setValues(deriveSetupValuesFromArchiveEntry(importResult.archive.campaigns[0]));
+        setCurrentStep(0);
+      }
+
+      setConfigJson(JSON.stringify(importResult.archive, null, 2));
+      setConfigStatus(
+        `Imported ${importResult.importedCampaigns} campaign${importResult.importedCampaigns === 1 ? "" : "s"} and ${importResult.importedVariants} variant${importResult.importedVariants === 1 ? "" : "s"}.`,
+      );
+    } catch (error) {
+      setConfigError(
+        error instanceof Error ? error.message : "Configuration import failed.",
+      );
+    } finally {
+      setIsImportingConfig(false);
+    }
+  }
+
+  async function handleCloneVariant() {
+    setCloneError("");
+    setCloneStatus("");
+
+    const validationErrors = validateVariantCloneValues(cloneValues, experiences);
+    setCloneErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    setIsCloningVariant(true);
+
+    try {
+      const cloneResult = await cloneVariant(cloneValues);
+      setSummary(cloneResult.summary);
+      setExperiences(cloneResult.experiences);
+      setCloneValues(getDefaultVariantCloneValues(cloneResult.variant));
+      setCloneErrors({});
+      setCloneStatus(`Cloned variant ${cloneResult.variant.name}.`);
+    } catch (error) {
+      setCloneError(
+        error instanceof Error ? error.message : "Variant cloning failed.",
+      );
+    } finally {
+      setIsCloningVariant(false);
+    }
+  }
+
+  function loadVariantIntoCloneWizard(variant: ExperienceVariant) {
+    setCloneValues(getDefaultVariantCloneValues(variant));
+    setCloneErrors({});
+    setCloneError("");
+    setCloneStatus("");
   }
 
   const activeStep = setupSteps[currentStep];
@@ -634,15 +839,220 @@ export function MarketerSetupChat({
                     {variant.contentMode} · {variant.layoutMode} ·{" "}
                     {variant.languages.join(", ")}
                   </p>
-                  <Link
-                    className="mt-3 inline-flex text-sm font-semibold text-[var(--accent)]"
-                    href={variant.sharePath}
-                  >
-                    {variant.sharePath}
-                  </Link>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <Link
+                      className="inline-flex text-sm font-semibold text-[var(--accent)]"
+                      href={variant.sharePath}
+                    >
+                      {variant.sharePath}
+                    </Link>
+                    <button
+                      className="text-sm font-semibold text-[var(--foreground)]"
+                      onClick={() => {
+                        loadVariantIntoCloneWizard(variant);
+                      }}
+                      type="button"
+                    >
+                      Clone variant
+                    </button>
+                  </div>
                 </div>
               ))
             )}
+          </div>
+        </section>
+
+        <section className="glass-panel rounded-[1.75rem] p-6 md:p-8">
+          <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
+            Variant cloning wizard
+          </p>
+          <div className="mt-4 space-y-4">
+            <label className="block">
+              <span className="text-sm font-semibold">Source variant</span>
+              <select
+                className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                data-testid="clone-source-select"
+                onChange={(event) => {
+                  const selectedVariant = experiences.find((variant) => {
+                    return variant.id === event.target.value;
+                  });
+
+                  if (selectedVariant) {
+                    setCloneValues(getDefaultVariantCloneValues(selectedVariant));
+                    return;
+                  }
+
+                  updateCloneValue("sourceVariantId", event.target.value);
+                }}
+                value={cloneValues.sourceVariantId}
+              >
+                {experiences.length === 0 ? (
+                  <option value="">No variants available yet</option>
+                ) : null}
+                {experiences.map((variant) => (
+                  <option key={variant.id} value={variant.id}>
+                    {variant.name}
+                  </option>
+                ))}
+              </select>
+              {renderError(cloneErrors.sourceVariantId)}
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-semibold">Cloned variant name</span>
+              <input
+                className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                data-testid="clone-name-input"
+                onChange={(event) => {
+                  updateCloneValue("name", event.target.value);
+                }}
+                value={cloneValues.name}
+              />
+              {renderError(cloneErrors.name)}
+            </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-semibold">Content mode</span>
+                <select
+                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                  onChange={(event) => {
+                    updateCloneValue(
+                      "contentMode",
+                      event.target.value as VariantCloneValues["contentMode"],
+                    );
+                  }}
+                  value={cloneValues.contentMode}
+                >
+                  <option value="curated">Curated</option>
+                  <option value="runtime-simulated">Runtime simulated</option>
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-semibold">Layout mode</span>
+                <select
+                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                  onChange={(event) => {
+                    updateCloneValue(
+                      "layoutMode",
+                      event.target.value as VariantCloneValues["layoutMode"],
+                    );
+                  }}
+                  value={cloneValues.layoutMode}
+                >
+                  <option value="fullscreen">Fullscreen</option>
+                  <option value="embedded">Embedded</option>
+                </select>
+              </label>
+            </div>
+
+            <label className="block">
+              <span className="text-sm font-semibold">
+                Languages, comma or line separated
+              </span>
+              <textarea
+                className="mt-2 min-h-24 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"
+                onChange={(event) => {
+                  updateCloneValue("languagesText", event.target.value);
+                }}
+                value={cloneValues.languagesText}
+              />
+              {renderError(cloneErrors.languagesText)}
+            </label>
+          </div>
+
+          {cloneError ? (
+            <p className="mt-3 text-sm text-red-700" data-testid="clone-error">
+              {cloneError}
+            </p>
+          ) : null}
+
+          {cloneStatus ? (
+            <p
+              className="mt-3 text-sm text-[var(--success)]"
+              data-testid="clone-status"
+            >
+              {cloneStatus}
+            </p>
+          ) : null}
+
+          <div className="mt-5 flex justify-end">
+            <button
+              className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              data-testid="clone-submit"
+              disabled={experiences.length === 0 || isCloningVariant}
+              onClick={handleCloneVariant}
+              type="button"
+            >
+              {isCloningVariant ? "Cloning..." : "Clone variant"}
+            </button>
+          </div>
+        </section>
+
+        <section className="glass-panel rounded-[1.75rem] p-6 md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
+                Configuration archive
+              </p>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                Export the current workspace configuration or import a JSON archive
+                to merge it back in and load the first campaign into the setup
+                form.
+              </p>
+            </div>
+            <button
+              className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              data-testid="config-export"
+              disabled={isExportingConfig || isImportingConfig}
+              onClick={handleExportConfig}
+              type="button"
+            >
+              {isExportingConfig ? "Exporting..." : "Export JSON"}
+            </button>
+          </div>
+
+          <label className="mt-5 block">
+            <span className="text-sm font-semibold">Workspace archive JSON</span>
+            <textarea
+              className="mt-2 min-h-52 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3 font-mono text-sm"
+              data-testid="config-archive-json"
+              onChange={(event) => {
+                setConfigJson(event.target.value);
+                setConfigError("");
+                setConfigStatus("");
+              }}
+              placeholder='{"version":1,"exportedAt":"...","campaigns":[]}'
+              value={configJson}
+            />
+          </label>
+
+          {configError ? (
+            <p className="mt-3 text-sm text-red-700" data-testid="config-error">
+              {configError}
+            </p>
+          ) : null}
+
+          {configStatus ? (
+            <p
+              className="mt-3 text-sm text-[var(--success)]"
+              data-testid="config-status"
+            >
+              {configStatus}
+            </p>
+          ) : null}
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              data-testid="config-import"
+              disabled={isImportingConfig || isExportingConfig}
+              onClick={handleImportConfig}
+              type="button"
+            >
+              {isImportingConfig ? "Importing..." : "Import JSON"}
+            </button>
           </div>
         </section>
       </aside>
