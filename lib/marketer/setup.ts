@@ -86,7 +86,7 @@ export function getDefaultSetupValues(): MarketerSetupValues {
     conversionGoal: "advisor-consultation",
     contentMode: "curated",
     curatedUrlsText:
-      "https://www.ubs.com/global/en/wealthmanagement.html\nhttps://www.ubs.com/global/en/wealthmanagement/chief-investment-office.html",
+      "https://www.blackrock.com/us/individual/insights\nhttps://www.fidelity.com/learning-center/overview",
     languagesText: "en-US",
     leadFieldsText:
       "fullName|Full name|required|text\nemail|Email address|required|email",
@@ -192,7 +192,7 @@ export function validateSetupValues(
     parseDelimitedLines(values.curatedUrlsText).length === 0
   ) {
     errors.curatedUrlsText =
-      "Provide at least one UBS URL for curated content mode.";
+      "Provide at least one reference URL for curated content mode.";
   }
 
   if (parseDelimitedLines(values.languagesText).length === 0) {

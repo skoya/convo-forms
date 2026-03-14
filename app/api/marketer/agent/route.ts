@@ -17,7 +17,7 @@ function fallbackResponse(messages: ChatMessage[], promptDraft: string) {
     objective: /objective|consultation|lead|callback|book/i.test(userMessages),
     audience: /hnw|uhnw|audience|persona|segment/i.test(userMessages),
     tone: /tone|formal|premium|friendly|concise/i.test(userMessages),
-    content: /ubs|content|article|insight|recommend/i.test(userMessages),
+    content: /content|article|insight|recommend|source/i.test(userMessages),
     leadFields: /email|phone|country|asset|lead/i.test(userMessages),
     compliance: /consent|privacy|compliance|advice/i.test(userMessages),
   };
@@ -29,7 +29,7 @@ function fallbackResponse(messages: ChatMessage[], promptDraft: string) {
       : !answered.tone
         ? "What tone should the visitor bot use (e.g., premium-formal, premium-warm, concise-analytical)?"
         : !answered.content
-          ? "Should recommendations focus on curated UBS pages, runtime-simulated retrieval, or both?"
+          ? "Should recommendations focus on curated reference pages, runtime-simulated retrieval, or both?"
           : !answered.leadFields
             ? "Which lead fields should be mandatory vs optional before advisor handoff?"
             : !answered.compliance
@@ -54,7 +54,7 @@ function fallbackResponse(messages: ChatMessage[], promptDraft: string) {
     "You are a visitor-facing wealth conversation assistant for HNW/UHNW prospects.",
     "Provide educational guidance only, never personalized investment advice.",
     "Use a premium but concise tone.",
-    "Recommend relevant public UBS.com content when useful.",
+    "Recommend relevant public reference content when useful.",
     "Collect consent before personal data capture.",
     "Capture lead details for advisor follow-up when visitor shows intent.",
     promptDraft?.trim() ? `Existing draft context: ${promptDraft.trim()}` : "",
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(fallbackResponse(messages, promptDraft));
     }
 
-    const systemPrompt = `You are a marketer enablement agent helping define the VISITOR chatbot system prompt for a wealth management prototype.\n\nYou must coach by asking adaptive discovery questions and making concrete suggestions.\n\nOutput STRICT JSON with keys:\n- assistantReply: concise conversational response to marketer that includes (1) one practical suggestion and (2) one next question\n- promptDraft: updated full visitor system prompt draft\n\nBehavior requirements:\n- Ask one focused next question per turn, based on what is still unknown\n- Suggest concrete options after each marketer answer\n- Keep tone practical, premium, and concise\n\nRules for promptDraft:\n- educational information only, no personalized investment advice\n- include consent-before-PII behavior\n- include lead handoff behavior\n- include rich content recommendation behavior using public UBS.com pages\n- keep language clear and implementation-ready`;
+    const systemPrompt = `You are a marketer enablement agent helping define the VISITOR chatbot system prompt for a wealth management prototype.\n\nYou must coach by asking adaptive discovery questions and making concrete suggestions.\n\nOutput STRICT JSON with keys:\n- assistantReply: concise conversational response to marketer that includes (1) one practical suggestion and (2) one next question\n- promptDraft: updated full visitor system prompt draft\n\nBehavior requirements:\n- Ask one focused next question per turn, based on what is still unknown\n- Suggest concrete options after each marketer answer\n- Keep tone practical, premium, and concise\n\nRules for promptDraft:\n- educational information only, no personalized investment advice\n- include consent-before-PII behavior\n- include lead handoff behavior\n- include rich content recommendation behavior using public reference pages\n- keep language clear and implementation-ready`;
 
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",

@@ -23,7 +23,7 @@ test.beforeEach(async ({ request }) => {
 test("critical and serious accessibility checks stay clean on primary routes", async ({
   page,
 }) => {
-  const routes = ["/", "/marketer", "/experience/exp-ubs-wealth-curated"];
+  const routes = ["/", "/marketer", "/experience/exp-premium-wealth-curated"];
 
   for (const route of routes) {
     if (route === "/marketer") {
@@ -64,7 +64,7 @@ test("primary flows render across mobile, tablet, and desktop viewports", async 
     await signInAsMarketer(page);
     await expect(page.getByTestId("analytics-dashboard")).toBeVisible();
 
-    await page.goto("/experience/exp-ubs-wealth-runtime");
+    await page.goto("/experience/exp-premium-wealth-runtime");
     await expect(page.getByTestId("recommendation-cards")).toBeVisible();
   }
 });

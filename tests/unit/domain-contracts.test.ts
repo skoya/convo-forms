@@ -15,8 +15,8 @@ describe("domain contracts", () => {
     const campaign: Campaign = demoCampaignFixture;
 
     expect(campaign).toMatchObject({
-      id: "cmp-ubs-wealth-launch",
-      name: "UBS wealth launch",
+      id: "cmp-premium-wealth-launch",
+      name: "Premium wealth launch",
       adContext: {
         source: "linkedin",
       },

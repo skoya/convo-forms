@@ -58,7 +58,7 @@ test("guided tour links route correctly", async ({ page }) => {
     .getByRole("link", { name: "Open seeded visitor route" })
     .click();
 
-  await expect(page).toHaveURL(/\/experience\/exp-ubs-wealth-curated$/);
+  await expect(page).toHaveURL(/\/experience\/exp-premium-wealth-curated$/);
 });
 
 test("playbook sections exist and are readable", async ({ page }) => {

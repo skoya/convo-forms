@@ -28,8 +28,8 @@ test.beforeEach(async ({ request }) => {
   await request.post("/api/demo/seed");
 
   await track(request, {
-    campaignId: "cmp-ubs-wealth-launch",
-    variantId: "exp-ubs-wealth-curated",
+    campaignId: "cmp-premium-wealth-launch",
+    variantId: "exp-premium-wealth-curated",
     sessionId: "sess-curated-1",
     eventType: "session_start",
     language: "en-US",
@@ -37,8 +37,8 @@ test.beforeEach(async ({ request }) => {
     adContext: "Launch",
   });
   await track(request, {
-    campaignId: "cmp-ubs-wealth-launch",
-    variantId: "exp-ubs-wealth-curated",
+    campaignId: "cmp-premium-wealth-launch",
+    variantId: "exp-premium-wealth-curated",
     sessionId: "sess-curated-2",
     eventType: "session_start",
     language: "en-US",
@@ -46,8 +46,8 @@ test.beforeEach(async ({ request }) => {
     adContext: "Launch",
   });
   await track(request, {
-    campaignId: "cmp-ubs-wealth-launch",
-    variantId: "exp-ubs-wealth-curated",
+    campaignId: "cmp-premium-wealth-launch",
+    variantId: "exp-premium-wealth-curated",
     sessionId: "sess-curated-1",
     eventType: "lead_submit",
     language: "en-US",
@@ -55,8 +55,8 @@ test.beforeEach(async ({ request }) => {
     adContext: "Launch",
   });
   await track(request, {
-    campaignId: "cmp-ubs-wealth-launch",
-    variantId: "exp-ubs-wealth-runtime",
+    campaignId: "cmp-premium-wealth-launch",
+    variantId: "exp-premium-wealth-runtime",
     sessionId: "sess-runtime-1",
     eventType: "session_start",
     language: "de-CH",
@@ -64,8 +64,8 @@ test.beforeEach(async ({ request }) => {
     adContext: "Runtime",
   });
   await track(request, {
-    campaignId: "cmp-ubs-wealth-launch",
-    variantId: "exp-ubs-wealth-runtime",
+    campaignId: "cmp-premium-wealth-launch",
+    variantId: "exp-premium-wealth-runtime",
     sessionId: "sess-runtime-2",
     eventType: "session_start",
     language: "de-CH",
@@ -73,8 +73,8 @@ test.beforeEach(async ({ request }) => {
     adContext: "Runtime",
   });
   await track(request, {
-    campaignId: "cmp-ubs-wealth-launch",
-    variantId: "exp-ubs-wealth-runtime",
+    campaignId: "cmp-premium-wealth-launch",
+    variantId: "exp-premium-wealth-runtime",
     sessionId: "sess-runtime-3",
     eventType: "session_start",
     language: "de-CH",

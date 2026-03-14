@@ -22,7 +22,7 @@ test("demo seed creates the expected entities", async ({ page }) => {
   await page.getByTestId("seed-demo-button").click();
 
   await expect(page.getByTestId("seed-result")).toContainText(
-    "cmp-ubs-wealth-launch",
+    "cmp-premium-wealth-launch",
   );
   await expect(page.getByTestId("repo-summary")).toContainText("Campaigns");
   await expect(page.getByTestId("repo-summary")).toContainText("1");
@@ -30,8 +30,8 @@ test("demo seed creates the expected entities", async ({ page }) => {
     "Experience variants",
   );
   await expect(page.getByTestId("repo-summary")).toContainText("2");
-  await page.getByRole("link", { name: "Open exp-ubs-wealth-curated" }).click();
-  await expect(page).toHaveURL(/\/experience\/exp-ubs-wealth-curated$/);
+  await page.getByRole("link", { name: "Open exp-premium-wealth-curated" }).click();
+  await expect(page).toHaveURL(/\/experience\/exp-premium-wealth-curated$/);
   await expect(page.getByTestId("experience-title")).toContainText(
     "Curated guidance path",
   );

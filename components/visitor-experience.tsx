@@ -64,7 +64,7 @@ type LeadCaptureField = {
 const copyByLanguage: Record<string, CopySet> = {
   "de-CH": {
     intro:
-      "Willkommen. Ich kann Ihnen bildungsorientierte Inhalte zu Vermoegensplanung und UBS Themen zeigen.",
+      "Willkommen. Ich kann Ihnen bildungsorientierte Inhalte zu Vermoegensplanung und globale Wealth-Themen zeigen.",
     promptLabel: "Ihre Frage",
     promptPlaceholder: "Beschreiben Sie, was Sie heute erkunden moechten",
     sendLabel: "Senden",
@@ -84,7 +84,7 @@ const copyByLanguage: Record<string, CopySet> = {
   },
   "en-US": {
     intro:
-      "Welcome. I can surface educational UBS content tied to your planning priorities and this campaign variant.",
+      "Welcome. I can surface educational market insights content tied to your planning priorities and this campaign variant.",
     promptLabel: "Your question",
     promptPlaceholder: "Describe what you want to explore today",
     sendLabel: "Send",
@@ -107,7 +107,7 @@ const copyByLanguage: Record<string, CopySet> = {
 const starterPrompts = [
   "How can I prepare for a portfolio review?",
   "Show me content for family succession planning.",
-  "What educational UBS resources cover sustainable investing?",
+  "What educational resources cover sustainable investing?",
 ];
 
 async function trackEvent(payload: {
@@ -405,12 +405,12 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-      <section className="glass-panel rounded-[1.75rem] p-6 md:p-8">
+    <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+      <section className="glass-panel rounded-[1.75rem] border-2 border-[color-mix(in_srgb,var(--accent)_25%,white)] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-              Visitor chat
+            <p className="text-xs uppercase tracking-[0.28em] text-[var(--accent)]">
+              Visitor concierge chat
             </p>
             <h2 className="display-font mt-3 text-4xl font-semibold">
               {experience.name}
@@ -450,8 +450,8 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
               key={message.id}
               className={
                 message.role === "assistant"
-                  ? "max-w-3xl rounded-[1.25rem] border border-[var(--border)] bg-white/80 px-5 py-4"
-                  : "ml-auto max-w-2xl rounded-[1.25rem] bg-[var(--accent)] px-5 py-4 text-white"
+                  ? "max-w-3xl rounded-[1.25rem] border border-[color-mix(in_srgb,var(--accent)_18%,white)] bg-white px-5 py-4 shadow-sm"
+                  : "ml-auto max-w-2xl rounded-[1.25rem] bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-5 py-4 text-white shadow-[0_10px_30px_rgba(0,112,243,0.28)]"
               }
             >
               <p className="text-xs uppercase tracking-[0.22em] opacity-70">
@@ -686,7 +686,7 @@ export function VisitorExperience({ experience }: VisitorExperienceProps) {
                   {recommendation.sourceUrl}
                 </p>
                 <button
-                  className="mt-4 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold"
+                  className="mt-4 rounded-full border border-[color-mix(in_srgb,var(--accent)_35%,white)] bg-[color-mix(in_srgb,var(--accent)_8%,white)] px-4 py-2 text-sm font-semibold"
                   onClick={() => {
                     void handleRecommendationClick(recommendation);
                   }}

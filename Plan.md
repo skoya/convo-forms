@@ -4,7 +4,7 @@
 ## 0) Mission
 Build a **single Next.js prototype app** that proves:
 1. A marketer can configure a conversational campaign journey from social ads.
-2. Visitors can engage in a rich chat experience with curated/retrieved UBS.com public content.
+2. Visitors can engage in a rich chat experience with curated/retrieved public wealth content sites public content.
 3. Qualified leads can be captured (with consent controls) and handed to a **simulated CRM endpoint**.
 
 This is a **prototype**, not a production banking platform.
@@ -161,7 +161,7 @@ type AnalyticsEvent = {
 
 ## 3.3 Retrieval simulation rule (important)
 - **Do not build live crawler/search infra.**
-- Runtime mode should simulate retrieval from preloaded UBS URL fixtures + scoring heuristic.
+- Runtime mode should simulate retrieval from preloaded reference URL fixtures + scoring heuristic.
 - Keep implementation prototype-safe and deterministic for tests.
 
 ---
@@ -238,7 +238,7 @@ Where shown:
 ### Build
 - Chat runtime bound to variant config.
 - Content cards rendered in conversation.
-- Curated mode uses configured/sample UBS URLs.
+- Curated mode uses configured/sample reference URLs.
 - Runtime-simulated mode uses fixture retrieval simulation.
 - Language profile support enabled.
 
@@ -392,7 +392,7 @@ If a stage destabilizes:
 - Real advisor scheduling integrations
 - Real SSO/auth
 - Production legal/compliance automation
-- Production-grade UBS ingestion pipeline
+- Production-grade external content ingestion pipeline
 
 ---
 

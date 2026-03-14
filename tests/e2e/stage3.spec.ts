@@ -5,7 +5,7 @@ test.beforeEach(async ({ request }) => {
 });
 
 test("visitor journey shows recommendations without dead ends", async ({ page }) => {
-  await page.goto("/experience/exp-ubs-wealth-curated");
+  await page.goto("/experience/exp-premium-wealth-curated");
 
   await expect(page.getByTestId("chat-thread")).toContainText("Welcome");
   await page
@@ -17,12 +17,12 @@ test("visitor journey shows recommendations without dead ends", async ({ page })
     "I ranked these items",
   );
   await expect(page.getByTestId("recommendation-cards")).toContainText(
-    "UBS Wealth Management",
+    "Global Wealth Playbook",
   );
 });
 
 test("recommendation cards include rationale and click tracking", async ({ page }) => {
-  await page.goto("/experience/exp-ubs-wealth-runtime");
+  await page.goto("/experience/exp-premium-wealth-runtime");
 
   await expect(page.getByTestId("recommendation-cards")).toContainText(
     "Source URL",
@@ -39,7 +39,7 @@ test("recommendation cards include rationale and click tracking", async ({ page 
 });
 
 test("language behavior matches the configured variant languages", async ({ page }) => {
-  await page.goto("/experience/exp-ubs-wealth-runtime");
+  await page.goto("/experience/exp-premium-wealth-runtime");
 
   await page.getByTestId("language-select").selectOption("de-CH");
 

@@ -9,8 +9,8 @@ import type {
 const FIXTURE_TIMESTAMP = "2026-03-14T09:00:00.000Z";
 
 export const demoCampaignFixture: Campaign = {
-  id: "cmp-ubs-wealth-launch",
-  name: "UBS wealth launch",
+  id: "cmp-premium-wealth-launch",
+  name: "Premium wealth launch",
   adContext: {
     source: "linkedin",
     audience: "hnw-executives",
@@ -23,14 +23,14 @@ export const demoCampaignFixture: Campaign = {
 
 export const demoExperienceFixtures: ExperienceVariant[] = [
   {
-    id: "exp-ubs-wealth-curated",
+    id: "exp-premium-wealth-curated",
     campaignId: demoCampaignFixture.id,
     name: "Curated guidance path",
     conversionGoal: "advisor-consultation",
     contentMode: "curated",
     curatedUrls: [
-      "https://www.ubs.com/global/en/wealthmanagement.html",
-      "https://www.ubs.com/global/en/wealthmanagement/chief-investment-office.html",
+      "https://www.blackrock.com/us/individual/insights",
+      "https://www.fidelity.com/learning-center/overview",
     ],
     languages: ["en-US"],
     qualificationEnabled: true,
@@ -52,17 +52,17 @@ export const demoExperienceFixtures: ExperienceVariant[] = [
       },
     ],
     layoutMode: "fullscreen",
-    sharePath: "/experience/exp-ubs-wealth-curated",
+    sharePath: "/experience/exp-premium-wealth-curated",
     createdAt: FIXTURE_TIMESTAMP,
   },
   {
-    id: "exp-ubs-wealth-runtime",
+    id: "exp-premium-wealth-runtime",
     campaignId: demoCampaignFixture.id,
     name: "Runtime simulation path",
     conversionGoal: "portfolio-review",
     contentMode: "runtime-simulated",
     curatedUrls: [
-      "https://www.ubs.com/global/en/wealthmanagement/insights.html",
+      "https://www.jpmorgan.com/insights/wealth-management",
     ],
     languages: ["en-US", "de-CH"],
     qualificationEnabled: false,
@@ -90,7 +90,7 @@ export const demoExperienceFixtures: ExperienceVariant[] = [
       },
     ],
     layoutMode: "embedded",
-    sharePath: "/experience/exp-ubs-wealth-runtime",
+    sharePath: "/experience/exp-premium-wealth-runtime",
     createdAt: FIXTURE_TIMESTAMP,
   },
 ];

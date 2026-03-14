@@ -41,7 +41,7 @@ export default function Home() {
                 </Link>
                 <Link
                   className="rounded-full border border-[var(--border)] bg-white/70 px-5 py-3 text-sm font-semibold text-[var(--foreground)]"
-                  href="/experience/exp-ubs-wealth-curated"
+                  href="/experience/exp-premium-wealth-curated"
                 >
                   Open seeded visitor route
                 </Link>
@@ -116,7 +116,7 @@ export default function Home() {
                 body: "Simulated auth-guarded workspace for campaign management.",
               },
               {
-                href: "/experience/exp-ubs-wealth-curated",
+                href: "/experience/exp-premium-wealth-curated",
                 title: "Experience",
                 body: "Visitor experience shell bound to a seeded variant id.",
               },

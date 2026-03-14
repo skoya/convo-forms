@@ -538,7 +538,7 @@ export function MarketerSetupChat({
               </label>
               <label className="block">
                 <span className="text-sm font-semibold">
-                  UBS URLs, one per line
+                  reference URLs, one per line
                 </span>
                 <textarea
                   className="mt-2 min-h-28 w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3"

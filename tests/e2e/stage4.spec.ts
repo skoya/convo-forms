@@ -20,7 +20,7 @@ test.beforeEach(async ({ request }) => {
 });
 
 test("submit is blocked without required consent", async ({ page }) => {
-  await page.goto("/experience/exp-ubs-wealth-curated");
+  await page.goto("/experience/exp-premium-wealth-curated");
 
   await page.getByTestId("lead-capture-start").click();
   await page.getByLabel("Primary planning need").fill("Portfolio review");
@@ -42,11 +42,11 @@ test("submit is blocked without required consent", async ({ page }) => {
 });
 
 test("qualification is shown only when enabled", async ({ page }) => {
-  await page.goto("/experience/exp-ubs-wealth-curated");
+  await page.goto("/experience/exp-premium-wealth-curated");
   await page.getByTestId("lead-capture-start").click();
   await expect(page.getByTestId("qualification-section")).toBeVisible();
 
-  await page.goto("/experience/exp-ubs-wealth-runtime");
+  await page.goto("/experience/exp-premium-wealth-runtime");
   await page.getByTestId("lead-capture-start").click();
   await expect(page.getByTestId("qualification-section")).toHaveCount(0);
   await expect(page.getByLabel("Full name")).toBeVisible();
@@ -55,7 +55,7 @@ test("qualification is shown only when enabled", async ({ page }) => {
 test("successful lead submission appears in the marketer CRM inspector", async ({
   page,
 }) => {
-  await page.goto("/experience/exp-ubs-wealth-curated");
+  await page.goto("/experience/exp-premium-wealth-curated");
 
   await page.getByTestId("lead-capture-start").click();
   await page.getByLabel("Primary planning need").fill("Family planning");
@@ -82,9 +82,9 @@ test("successful lead submission appears in the marketer CRM inspector", async (
 
   await signInAsMarketer(page);
   await expect(page.getByTestId("crm-payload-inspector")).toContainText(
-    "exp-ubs-wealth-curated",
+    "exp-premium-wealth-curated",
   );
   await expect(page.getByTestId("crm-payload-inspector")).toContainText(
-    "sess-exp-ubs-wealth-curated-visitor",
+    "sess-exp-premium-wealth-curated-visitor",
   );
 });

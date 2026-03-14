@@ -8,22 +8,22 @@ export type ContentFixture = {
   supportedLanguages: string[];
 };
 
-export const ubsContentFixtures: ContentFixture[] = [
+export const wealthContentFixtures: ContentFixture[] = [
   {
-    id: "ubs-wealth-management",
-    title: "UBS Wealth Management",
-    url: "https://www.ubs.com/global/en/wealthmanagement.html",
+    id: "wealth-playbook",
+    title: "Global Wealth Playbook",
+    url: "https://www.blackrock.com/us/individual/insights",
     summary:
-      "Overview of UBS wealth management capabilities, advice model, and planning support for complex households.",
+      "Overview of global wealth planning capabilities, advisory models, and support for complex households.",
     rationaleSnippet:
       "Useful when the visitor wants a broad view of advisory coverage and service model.",
     topics: ["wealth", "planning", "advisory", "relationship"],
     supportedLanguages: ["en-US", "de-CH"],
   },
   {
-    id: "ubs-chief-investment-office",
-    title: "UBS Chief Investment Office",
-    url: "https://www.ubs.com/global/en/wealthmanagement/chief-investment-office.html",
+    id: "chief-investment-briefing",
+    title: "Chief Investment Briefing",
+    url: "https://www.fidelity.com/learning-center/overview",
     summary:
       "Market perspectives, strategic asset allocation thinking, and CIO guidance for investors.",
     rationaleSnippet:
@@ -32,9 +32,9 @@ export const ubsContentFixtures: ContentFixture[] = [
     supportedLanguages: ["en-US", "de-CH"],
   },
   {
-    id: "ubs-wealth-insights",
-    title: "UBS Wealth Management Insights",
-    url: "https://www.ubs.com/global/en/wealthmanagement/insights.html",
+    id: "wealth-strategy-insights",
+    title: "Wealth Strategy Insights",
+    url: "https://www.jpmorgan.com/insights/wealth-management",
     summary:
       "Thematic insights across family governance, philanthropy, succession, and long-term planning.",
     rationaleSnippet:
@@ -43,9 +43,9 @@ export const ubsContentFixtures: ContentFixture[] = [
     supportedLanguages: ["en-US"],
   },
   {
-    id: "ubs-sustainable-investing",
-    title: "UBS Sustainable and Impact Investing",
-    url: "https://www.ubs.com/global/en/wealthmanagement/investment-view/sustainable-investing.html",
+    id: "sustainable-impact-investing",
+    title: "Sustainable and Impact Investing",
+    url: "https://www.morganstanley.com/ideas/sustainable-investing",
     summary:
       "Educational content around sustainable investing frameworks and portfolio implementation considerations.",
     rationaleSnippet:
@@ -54,9 +54,9 @@ export const ubsContentFixtures: ContentFixture[] = [
     supportedLanguages: ["en-US", "de-CH"],
   },
   {
-    id: "ubs-family-advisory",
-    title: "UBS Family Advisory and Succession",
-    url: "https://www.ubs.com/global/en/wealthmanagement/family-advisory.html",
+    id: "family-advisory-succession",
+    title: "Family Advisory and Succession Planning",
+    url: "https://www.schwab.com/learn/story/estate-planning",
     summary:
       "Public guidance on family governance, business transitions, and intergenerational planning topics.",
     rationaleSnippet:

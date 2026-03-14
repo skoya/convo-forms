@@ -12,7 +12,7 @@ describe("recommendation engine", () => {
     resetRepositories();
   });
 
-  it("returns curated recommendations from configured UBS URLs", () => {
+  it("returns curated recommendations from configured reference URLs", () => {
     const recommendations = getCuratedRecommendations(
       demoExperienceFixtures[0],
       "en-US",
@@ -20,8 +20,8 @@ describe("recommendation engine", () => {
 
     expect(recommendations).toHaveLength(2);
     expect(recommendations[0]).toMatchObject({
-      title: "UBS Wealth Management",
-      sourceUrl: "https://www.ubs.com/global/en/wealthmanagement.html",
+      title: "Global Wealth Playbook",
+      sourceUrl: "https://www.blackrock.com/us/individual/insights",
     });
   });
 
@@ -32,7 +32,7 @@ describe("recommendation engine", () => {
       query: "I need help with portfolio allocation and markets",
     });
 
-    expect(recommendations[0].title).toBe("UBS Chief Investment Office");
+    expect(recommendations[0].title).toBe("Chief Investment Briefing");
     expect(recommendations[0].score).toBeGreaterThanOrEqual(
       recommendations[1].score,
     );
@@ -46,6 +46,6 @@ describe("recommendation engine", () => {
     });
 
     expect(recommendations).toHaveLength(3);
-    expect(recommendations[0].title).toBe("UBS Chief Investment Office");
+    expect(recommendations[0].title).toBe("Chief Investment Briefing");
   });
 });

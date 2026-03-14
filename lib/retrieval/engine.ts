@@ -1,5 +1,5 @@
 import type { ExperienceVariant } from "@/lib/domain/models";
-import { ubsContentFixtures, type ContentFixture } from "@/lib/retrieval/fixtures";
+import { wealthContentFixtures, type ContentFixture } from "@/lib/retrieval/fixtures";
 
 export type Recommendation = {
   id: string;
@@ -64,7 +64,7 @@ export function getCuratedRecommendations(
 ): Recommendation[] {
   return experience.curatedUrls
     .map((url) => {
-      const fixture = ubsContentFixtures.find((item) => item.url === url);
+      const fixture = wealthContentFixtures.find((item) => item.url === url);
 
       if (!fixture || !fixture.supportedLanguages.includes(language)) {
         return null;
@@ -80,7 +80,7 @@ export function rankRuntimeRecommendations(
 ): Recommendation[] {
   const keywords = buildKeywordSet(context);
 
-  return ubsContentFixtures
+  return wealthContentFixtures
     .filter((fixture) => fixture.supportedLanguages.includes(context.language))
     .map((fixture) => {
       const score = keywords.reduce((currentScore, keyword) => {

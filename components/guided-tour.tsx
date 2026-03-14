@@ -39,7 +39,7 @@ const steps: TourStep[] = [
     success:
       "Visitor can complete journey and lead only submits after required consent.",
     actionLabel: "Open seeded visitor route",
-    actionHref: "/experience/exp-ubs-wealth-curated",
+    actionHref: "/experience/exp-premium-wealth-curated",
   },
   {
     title: "4) Inspect handoff, analytics, and iterate",
