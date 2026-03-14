@@ -397,8 +397,68 @@ export function MarketerSetupChat({
   }
 
   const activeStep = setupSteps[currentStep];
+  const [guideCollapsed, setGuideCollapsed] = useState(false);
+
+  const stepHints = [
+    {
+      nextAction: "Capture campaign context first.",
+      checklist: [
+        "Set campaign name and ad source.",
+        "Define audience + headline.",
+        "Make the ad promise and CTA explicit.",
+      ],
+    },
+    {
+      nextAction: "Lock the conversion target and content strategy.",
+      checklist: [
+        "Pick one conversion goal.",
+        "Choose curated vs runtime-simulated mode.",
+        "Provide at least one reference URL.",
+      ],
+    },
+    {
+      nextAction: "Configure localization and lead schema.",
+      checklist: [
+        "Set language codes.",
+        "Define lead fields in key|Label|required|type format.",
+      ],
+    },
+    {
+      nextAction: "Set risk/compliance defaults before personal data capture.",
+      checklist: [
+        "Toggle qualification requirement.",
+        "Set consent behavior.",
+        "Choose safety profile.",
+      ],
+    },
+    {
+      nextAction: "Define visitor identity and shell behavior.",
+      checklist: [
+        "Choose anonymous-first or early-identification.",
+        "Pick fullscreen or embedded layout.",
+      ],
+    },
+    {
+      nextAction: "Plan your experiment structure.",
+      checklist: [
+        "Pick 1 or 2 variants.",
+        "Name variants with clear hypothesis intent.",
+      ],
+    },
+    {
+      nextAction: "Create variants and move to visitor validation.",
+      checklist: [
+        "Review summary values.",
+        "Click Create variants.",
+        "Open each share link and run through consent + lead flow.",
+      ],
+    },
+  ] as const;
+
+  const activeHint = stepHints[currentStep];
 
   return (
+    <>
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
       <section className="glass-panel rounded-[1.75rem] p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -418,14 +478,6 @@ export function MarketerSetupChat({
           </div>
         </div>
 
-        <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-white/75 p-5">
-          <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
-            Assistant prompt
-          </p>
-          <p className="mt-3 text-sm leading-7 text-[var(--foreground)]">
-            {activeStep.prompt}
-          </p>
-        </div>
 
         {submitError ? (
           <div className="mt-5 rounded-[1.25rem] border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -1057,5 +1109,55 @@ export function MarketerSetupChat({
         </section>
       </aside>
     </div>
+
+    <div
+      className="fixed right-4 bottom-4 z-40 w-[min(92vw,380px)]"
+      data-testid="marketer-floating-guide"
+    >
+      <div className="rounded-2xl border border-[var(--border)] bg-white shadow-[0_18px_50px_rgba(0,0,0,0.14)]">
+        <button
+          className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left"
+          onClick={() => {
+            setGuideCollapsed((previous) => !previous);
+          }}
+          type="button"
+        >
+          <span className="text-xs font-semibold tracking-[0.22em] text-[var(--muted)] uppercase">
+            Marketer guidance
+          </span>
+          <span className="text-xs font-semibold text-[var(--accent)]">
+            {guideCollapsed ? "Expand" : "Collapse"}
+          </span>
+        </button>
+
+        {!guideCollapsed ? (
+          <div className="space-y-3 border-t border-[var(--border)] px-4 py-4">
+            <p className="text-sm font-semibold text-[var(--foreground)]" data-testid="floating-guide-step">
+              Step {currentStep + 1}: {activeStep.title}
+            </p>
+            <p className="text-sm leading-6 text-[var(--muted)]">{activeStep.prompt}</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">
+              Next best action: {activeHint.nextAction}
+            </p>
+            <ul className="list-disc space-y-1 pl-5 text-sm leading-6 text-[var(--muted)]">
+              {activeHint.checklist.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            {Object.keys(errors).length > 0 ? (
+              <p className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Resolve the highlighted validation items before continuing.
+              </p>
+            ) : null}
+            {currentStep === setupSteps.length - 1 ? (
+              <p className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--accent)_8%,white)] px-3 py-2 text-xs text-[var(--foreground)]">
+                After creating variants, open each share link and validate the visitor flow end-to-end.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
+    </>
   );
 }
