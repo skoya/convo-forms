@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4efe4;
+  --surface: rgba(255, 252, 245, 0.84);
+  --surface-strong: #fffaf1;
+  --foreground: #102028;
+  --muted: #53636d;
+  --border: rgba(16, 32, 40, 0.12);
+  --accent: #0d5c63;
+  --accent-strong: #083d44;
+  --success: #0a7c58;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(241, 177, 65, 0.2), transparent 32%),
+    radial-gradient(circle at top right, rgba(13, 92, 99, 0.18), transparent 28%),
+    linear-gradient(180deg, #f7f1e6 0%, #f0e6d6 100%);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), sans-serif;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+a {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+button:hover,
+a:hover {
+  transform: translateY(-1px);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 72%, white);
+  outline-offset: 3px;
+}
+
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 45px rgba(16, 32, 40, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.display-font {
+  font-family: var(--font-display), serif;
 }
